@@ -1,0 +1,63 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+static_resources:
+  listeners:
+  - name: my_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 13333
+    listener_filters:
+    - name: envoy.filters.listener.tls_inspector
+      typed_config: {}
+    filter_chains:
+    - filters:
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  path: "/"
+                route:
+                  cluster: foo.example.com
+      transport_socket:
+        name: "downstream_transport_socket"
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - private_key:
+                filename: "/home/hejiexu/cert/server-key.pem"
+              certificate_chain:
+                filename: "/home/hejiexu/cert/server.pem"
+            tls_params:
+              tls_maximum_protocol_version: TLSv1_2
+  clusters:
+  - name: foo.example.com
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    load_assignment:
+      cluster_name: foo.example.com
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33333
+

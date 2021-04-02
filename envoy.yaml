@@ -1,0 +1,89 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+static_resources:
+  listeners:
+  - name: my_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 13333
+    filter_chains:
+    - filters:
+      - name: envoy.tcp_proxy
+        config:
+          stat_prefix: ingress_tcp
+          cluster: my_cluster
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+              certificate_chain:
+                inline_string: |
+                  -----BEGIN CERTIFICATE-----
+                  MIID/zCCAuegAwIBAgIUdTLqyq0IEEOUTK6e8IDAwW0uuvAwDQYJKoZIhvcNAQEL
+                  BQAwaDELMAkGA1UEBhMCVVMxDzANBgNVBAgTBk9yZWdvbjERMA8GA1UEBxMIUG9y
+                  dGxhbmQxEzARBgNVBAoTCnNzbGV4YW1wbGUxCzAJBgNVBAsTAkNBMRMwEQYDVQQD
+                  Ewpzc2xleGFtcGxlMB4XDTIwMTEwMzEwMjYwMFoXDTIxMTEwMzEwMjYwMFowaTEL
+                  MAkGA1UEBhMCVVMxDzANBgNVBAgTBk9yZWdvbjERMA8GA1UEBxMIUG9ydGxhbmQx
+                  EzARBgNVBAoTCnNzbGV4YW1wbGUxDDAKBgNVBAsTA3NzbDETMBEGA1UEAxMKc3Ns
+                  ZXhhbXBsZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALTZwynG5yp6
+                  JL5R6qw0L50oUjw/GV7jLkRzp4IzzZbhN/ha4NspiucnMJvxP4lf3ThlEBS3xTLL
+                  Ay92BzV8VIG4Jc+UrwxK4UnAsTg0J+mcWGPMCM8giRnPVSNIOq/m+FZ86e0F9O7Y
+                  XFxVQIJj2EWBs1UarvU04z8Ta/s2Dq+evlhgSFUiMy4/tPw9rM4BqD+ZIWGZSlhc
+                  P0bVPcb2lieOZ+JXKtov3ipIgYSUSGxNsrywB+UW5xf77LGl5smZhCxgPt3bC8xU
+                  FY28GAwZ05BM1+ULg10OqLz5VyNYtTdrelCPpkslpM/0HEw+hIKqU7bd14EoSH3b
+                  XaE+FIZfR9ECAwEAAaOBnzCBnDAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYI
+                  KwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFKY2ut+r
+                  8YHo/Y3CJR1ltqdIxXfjMB8GA1UdIwQYMBaAFAdI8/IYPMyLGhhF/uNKkHnjRWmy
+                  MB0GA1UdEQQWMBSCBm5ld251Y4cEfwAAAYcEwKgAZDANBgkqhkiG9w0BAQsFAAOC
+                  AQEArmJn6/QdxsYlS/rsWc3TjK6eOQCaM8BgpO8LKXYSv75otqUuiefuZFwlDEmc
+                  itZi0Y7FuFs0kMqLGJW7wPd0soffYVY20FvE7KxgQfxbnO2Xo767kIwOviHnOMpU
+                  +8VLyWwGsy/1JtPmkkzh3HSV8sTAEI/Zl+OfuRFOcT+CSVLdVTGgwZ/17nigyW2C
+                  1h4L1T7qFQosWx9qPqyHmcPe4gnXQxRMmglN26xpEG4ODQmfWKu/KuUhOLiDnu0F
+                  KH4jXTLkoExdNuC9bQ7cmi1dMl0kUsPgbu8uvIh59aLRkyBk7Ji7cUPyInMeiwrU
+                  /Z4q5dyUPMUBpG1A+fYqdHRtSQ==
+                  -----END CERTIFICATE-----
+              private_key:
+                inline_string: |
+                  -----BEGIN RSA PRIVATE KEY-----
+                  MIIEogIBAAKCAQEAtNnDKcbnKnokvlHqrDQvnShSPD8ZXuMuRHOngjPNluE3+Frg
+                  2ymK5ycwm/E/iV/dOGUQFLfFMssDL3YHNXxUgbglz5SvDErhScCxODQn6ZxYY8wI
+                  zyCJGc9VI0g6r+b4Vnzp7QX07thcXFVAgmPYRYGzVRqu9TTjPxNr+zYOr56+WGBI
+                  VSIzLj+0/D2szgGoP5khYZlKWFw/RtU9xvaWJ45n4lcq2i/eKkiBhJRIbE2yvLAH
+                  5RbnF/vssaXmyZmELGA+3dsLzFQVjbwYDBnTkEzX5QuDXQ6ovPlXI1i1N2t6UI+m
+                  SyWkz/QcTD6EgqpTtt3XgShIfdtdoT4Uhl9H0QIDAQABAoIBAHmEqQJ1R/bew7mu
+                  SUUUe7nZ0gfxThbYB8qu+6sdK9Np2bXjOpuIunC/gIYIAG1KINc38So6oSKUDrvh
+                  Ts69j/rpxV5JxaU421A3Td06DmeGSk4kVvb2IalaCxb9/ZEcXVmf7X76Na4Xa1gP
+                  YJ08gaGSmPFiUJUqyFclsbTGie+uVYbsy2szUXmU0fvGA6Pe0c2G8QYnEHHAk4ae
+                  jceNVF8jRPaNTxUj9sNckf11YPLy7bXh6xqDPTDYhjp+XYhrr6nVRNieK/jIKE8J
+                  6Esv137yx1h7I9W8M+RigpTkCB0TJBlNqn8n7KVXGnmYP+ZX01lTqyqa6SQaBe9T
+                  7s8lfcECgYEA16V+9cdCYQpkdQivMnBvNwvuPGD8S7CO3LpuKBR6h+Fm1HT82RYw
+                  6l71o7K2Lr09XklXPjel7JLEQGxgTra0ouTHisNKo30o8/PhEZfUasqEMricClF1
+                  F3M1qkl+EErdpgyR3VnOWvf4tcrlx6VyYVqMsGhhISaSlSVWYvFwcR0CgYEA1rFg
+                  4O/HnB3SBUdi24IurJEG3xD7vQ1Sb2mUbVn2gpwOTGxLDjMJsjMP9S2PgxdJn4g1
+                  IldjlhBbjwvg1emWoXxmdb/nU4y+WBbO3g5fZCzmlSf0zsbQsU4ZTSRp26IxaYFY
+                  /LNhCGx1WAmTALoDl8HrCvhHy2zAmP35s++NB0UCgYA8Iua424xjS2agTH+u7TPW
+                  gfk51UIGSYJNg5/chXl2EyF99fHdCBc0BK8zq06q0hMfDAzMSPB4fKVF4fMpgEH3
+                  ex06USOrW+fjwArvwQt3jGo5SsoZBoZEt9grWLtTB82v1KmItNaa/7PX3nEdr8Gp
+                  7Hp3Z2ROvlb6SKNCjFny8QKBgBI5Tkrpr5zt3xT5oUeWvlWBnf6zV1sN1XCFmsbJ
+                  eyZNDt2n15sl8+2/bdxW+Lac9G/pRPFcT6S+ULdMv9IImPOuNphKKN2rtcCOdxLc
+                  T3aWZSBGGv6uW6qhQX6N17qAAwe8pgwVQehQJInLjkHiiEmKeWQd/SIkYhjafiaq
+                  7+KtAoGAT+LXbgdStHLOEFP5swJ5nOGBPHHi/BWCGn45WkDZ3ISiySTEJFpx3iMv
+                  tLrRZginKZEOROQLPLSP1gZwLXevUoZc1F0I/oQmbsz++hGIvUF4KiJmVsH28xdZ
+                  FXBqmX1EA1IdjKA+Fcptwov1Ysaf1Ayb0N4zjjBkzlepwbnu9gw=
+                  -----END RSA PRIVATE KEY-----
+  clusters:
+  - name: my_cluster
+    connect_timeout: 0.25s
+    hosts:
+    - socket_address:
+        address: 0.0.0.0
+        port_value: 33333
