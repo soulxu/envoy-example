@@ -13,8 +13,11 @@ static_resources:
         protocol: TCP
         address: 0.0.0.0
         port_value: 13333
+    listener_filters:
+    - name: envoy.filters.listener.tls_inspector
+      typed_config: {}
     filter_chains:
-    - filters:
+      filters:
       # The HTTP connection manager is the only network filter.
       - name: envoy.filters.network.http_connection_manager
         typed_config:
@@ -30,21 +33,16 @@ static_resources:
                   path: "/"
                 route:
                   cluster: my_cluster
-              typed_per_filter_config:
-                filter.unknown:
-                  "@type": type.googleapis.com/google.protobuf.Struct
-                  value:
-                    seconds: 123
           http_filters:
           - name: envoy.filters.http.router
-            is_optional: true
   clusters:
   - name: my_cluster
     connect_timeout: 0.25s
-    type: strict_dns
-    lb_policy: round_robin
+    type: STATIC
+    lb_policy: ROUND_ROBIN
     protocol_selection: USE_DOWNSTREAM_PROTOCOL
-    http2_protocol_options: {}
+    common_lb_config:
+      locality_weighted_lb_config: {}
     load_assignment:
       cluster_name: my_cluster
       endpoints:
@@ -54,3 +52,17 @@ static_resources:
               socket_address:
                 address: 0.0.0.0
                 port_value: 33333
+        load_balancing_weight: 30
+        priority: 0
+        locality:
+          region: "A"
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33334
+        load_balancing_weight: 70
+        priority: 0
+        locality:
+          region: "B"

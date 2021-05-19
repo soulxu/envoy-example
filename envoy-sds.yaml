@@ -8,6 +8,11 @@ admin:
       address: 127.0.0.1
       port_value: 9901
 static_resources:
+  secrets:
+    - name: "testcert"
+      validation_context:
+        trusted_ca:
+          filename: "/home/hejiexu/envoy-example/cert/root/intermedia/cluster/cluster.pem"
   listeners:
   - name: my_listener
     address:
@@ -19,10 +24,7 @@ static_resources:
     - name: envoy.filters.listener.tls_inspector
       typed_config: {}
     filter_chains:
-    - filter_chain_match:
-        server_names:
-        - foo.example.com
-      filters:
+    - filters:
       - name: envoy.filters.network.tcp_proxy
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
@@ -33,32 +35,20 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
           common_tls_context:
-            tls_certificate_sds_secret_configs:
-              - name: "testcert"
-  secrets:
-    - name: "testcert"
-      tls_certificate:
-        private_key:
-          filename: "/home/hejiexu/envoy-example/cert/root/cert/server-key.pem"
-        certificate_chain:
-          filename: "/home/hejiexu/envoy-example/cert/root/cert/server.pem"
-      validation_context:
-        trusted_ca:
-          filename: "/home/hejiexu/envoy-example/cert/root/intermedia/cluster/cluster.pem"
+            tls_certificates:
+              - private_key:
+                  filename: "/home/hejiexu/envoy-example/cert/root/cert/server-key.pem"
+                certificate_chain:
+                  filename: "/home/hejiexu/envoy-example/cert/root/cert/server.pem"
+            validation_context:
+              trusted_ca:
+                filename: "/home/hejiexu/envoy-example/cert/root/ca.pem"
   clusters:
   - name: foo.example.com
     connect_timeout: 0.25s
     type: strict_dns
     lb_policy: round_robin
     protocol_selection: USE_DOWNSTREAM_PROTOCOL
-    transport_socket:
-      name: tls
-      typed_config:
-        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-        common_tls_context:
-          validation_context:
-            trusted_ca:
-              filename: "/home/hejiexu/cert/ca.pem"
     load_assignment:
       cluster_name: foo.example.com
       endpoints:

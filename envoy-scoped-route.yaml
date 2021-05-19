@@ -29,17 +29,33 @@ static_resources:
               - match:
                   path: "/"
                 route:
-                  cluster: my_cluster
-              typed_per_filter_config:
-                filter.unknown:
-                  "@type": type.googleapis.com/google.protobuf.Struct
-                  value:
-                    seconds: 123
+                  cluster: my_cluster1
+          scoped_routes:
+            name: scoped_route
+            scope_key_builder:
+              fragments:
+                - header_value_extractor:
+                    name: X-Route-Selector
+                    element_separator: ,
+                    element:
+                      separator: =
+                      key: vip
+            scoped_route_configurations_list:
+              scoped_route_configurations:
+                - name: route-scope1
+                  route_configuration_name: local_route
+                  key:
+                    fragments:
+                      - string_key: 33333
+                - name: route-scope2
+                  route_configuration_name: local_route
+                  key:
+                    fragments:
+                      - string_key: 33334
           http_filters:
           - name: envoy.filters.http.router
-            is_optional: true
   clusters:
-  - name: my_cluster
+  - name: my_cluster1
     connect_timeout: 0.25s
     type: strict_dns
     lb_policy: round_robin
@@ -54,3 +70,18 @@ static_resources:
               socket_address:
                 address: 0.0.0.0
                 port_value: 33333
+  - name: my_cluster2
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33334

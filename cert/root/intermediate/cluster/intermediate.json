@@ -1,0 +1,16 @@
+{
+    "CN": "Intermediate CA",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+               "C": "SE",
+               "L": "Lund",
+               "O": "Jitesoft",
+               "ST": "Skania",
+	       "OU": "cluster"
+        }
+    ]
+}

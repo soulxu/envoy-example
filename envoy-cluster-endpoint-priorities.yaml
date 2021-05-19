@@ -18,33 +18,68 @@ static_resources:
       typed_config: {}
     filter_chains:
       filters:
-      - name: envoy.filters.network.tcp_proxy
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
         typed_config:
-          "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-          stat_prefix: ingress_tcp
-          cluster: foo.example.com
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  path: "/"
+                route:
+                  cluster: my_cluster
+          http_filters:
+          - name: envoy.filters.http.router
   clusters:
-  - name: foo.example.com
+  - name: my_cluster
     connect_timeout: 0.25s
-    type: strict_dns
-    lb_policy: round_robin
+    type: STATIC
+    lb_policy: ROUND_ROBIN
     protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    common_lb_config:
+      locality_weighted_lb_config: {}
+    health_checks:
+      - timeout: 
+          seconds: 5
+        interval:
+          seconds: 3
+        http_health_check:
+          path: /
+        unhealthy_threshold: 2
+        healthy_threshold: 2
     load_assignment:
-      cluster_name: foo.example.com
+      cluster_name: my_cluster
       endpoints:
-      - locality:
-          region: region1
-        lb_endpoints:
+      - lb_endpoints:
         - endpoint:
             address:
               socket_address:
                 address: 0.0.0.0
                 port_value: 33333
-      - locality:
-          region: region2
-        lb_endpoints:
+          load_balancing_weight: 30
         - endpoint:
             address:
               socket_address:
                 address: 0.0.0.0
                 port_value: 33334
+          load_balancing_weight: 70
+        load_balancing_weight: 30
+        priority: 0
+        locality:
+          region: "A"
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33335
+        load_balancing_weight: 70
+        priority: 1
+        locality:
+          region: "B"
+
