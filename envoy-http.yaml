@@ -1,10 +1,10 @@
-admin:
-  access_log_path: /tmp/admin_access.log
-  address:
-    socket_address:
-      protocol: TCP
-      address: 127.0.0.1
-      port_value: 9901
+# admin:
+#   access_log_path: /tmp/admin_access.log
+#   address:
+#     socket_address:
+#       protocol: TCP
+#       address: 127.0.0.1
+#       port_value: 9901
 static_resources:
   listeners:
   - name: my_listener
@@ -27,17 +27,13 @@ static_resources:
               domains: ["*"]
               routes:
               - match:
-                  path: "/"
+                  prefix: "/"
                 route:
                   cluster: my_cluster
-              typed_per_filter_config:
-                filter.unknown:
-                  "@type": type.googleapis.com/google.protobuf.Struct
-                  value:
-                    seconds: 123
           http_filters:
           - name: envoy.filters.http.router
-            is_optional: true
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
   - name: my_cluster
     connect_timeout: 0.25s
