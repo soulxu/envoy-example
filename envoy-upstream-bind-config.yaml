@@ -11,7 +11,7 @@ static_resources:
     address:
       socket_address:
         protocol: TCP
-        address: 0.0.0.0
+        address: "127.0.0.1"
         port_value: 13333
     filter_chains:
     - filters:
@@ -28,6 +28,20 @@ static_resources:
               routes:
               - match:
                   prefix: "/"
+                  headers:
+                  - name: "foo"
+                    present_match: false
+                route:
+                  cluster: my_cluster
+                request_headers_to_add:
+                - header:
+                    key: foo
+                    value: bar
+              - match:
+                  prefix: "/"
+                  headers:
+                  - name: "foo"
+                    present_match: true
                 route:
                   cluster: my_cluster
           http_filters:
@@ -41,6 +55,15 @@ static_resources:
     lb_policy: round_robin
     protocol_selection: USE_DOWNSTREAM_PROTOCOL
     http2_protocol_options: {}
+    upstream_bind_config:
+      source_address:
+        address: 172.41.3.14
+        port_value: 39555
+      additional_source_addresses:
+      - address: "2001:db8:100:15a::1"
+        port_value: 39556
+      - address: "2001:db8:100:15a::2"
+        port_value: 39556
     load_assignment:
       cluster_name: my_cluster
       endpoints:
@@ -48,5 +71,11 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: 127.0.0.1
+                address: 172.41.3.14
                 port_value: 33333
+        - endpoint:
+            address:
+              socket_address:
+                address: "2001:db8:85a3::1"
+                port_value: 33333
+

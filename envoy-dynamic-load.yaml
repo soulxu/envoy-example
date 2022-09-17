@@ -1,0 +1,17 @@
+node:
+  cluster: test-cluster
+  id: "1"
+
+dynamic_resources:
+  cds_config:
+    path: /home/hejiexu/go/src/github/soulxu/envoy-example/cds.yaml
+  lds_config:
+    path: /home/hejiexu/go/src/github/soulxu/envoy-example/current.yaml
+
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.8
+      port_value: 9901

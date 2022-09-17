@@ -1,18 +1,35 @@
-# admin:
-#   access_log_path: /tmp/admin_access.log
-#   address:
-#     socket_address:
-#       protocol: TCP
-#       address: 127.0.0.1
-#       port_value: 9901
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
 static_resources:
   listeners:
   - name: my_listener
+    reuse_port: false
     address:
       socket_address:
         protocol: TCP
         address: 0.0.0.0
         port_value: 13333
+    access_log:
+    - name: envoy.access_loggers.file
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+        path:  /tmp/access_listener.log
+        log_format:
+          json_format:
+            tlv: "%DYNAMIC_METADATA(envoy.filters.listener.proxy_protocol:test)%"
+    listener_filters:
+    - name: envoy.filters.listener.proxy_protocol
+      typed_config: 
+        "@type": "type.googleapis.com/envoy.extensions.filters.listener.proxy_protocol.v3.ProxyProtocol"
+        rules:
+        - tlv_type: 4
+          on_tlv_present:
+            key: "test"
     filter_chains:
     - filters:
       # The HTTP connection manager is the only network filter.
@@ -32,8 +49,15 @@ static_resources:
                   cluster: my_cluster
           http_filters:
           - name: envoy.filters.http.router
+            is_optional: true
+          access_log:
+          - name: envoy.access_loggers.file
             typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+              path:  /tmp/access_http.log
+              log_format:
+                json_format:
+                  tlv: "%DYNAMIC_METADATA(envoy.filters.listener.proxy_protocol:test)%"
   clusters:
   - name: my_cluster
     connect_timeout: 0.25s
@@ -48,5 +72,5 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: 127.0.0.1
+                address: 0.0.0.0
                 port_value: 33333

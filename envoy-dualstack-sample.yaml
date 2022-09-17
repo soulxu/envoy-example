@@ -1,0 +1,120 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+layered_runtime:
+  layers:
+  - name: default
+    static_layer:
+      envoy:
+        reloadable_features:
+          allow_multiple_dns_addresses: true
+static_resources:
+  listeners:
+  - name: dual_stack_listener
+    reuse_port: false
+    address:
+      socket_address:
+        protocol: TCP
+        address: "::FFFF:172.41.3.14"         # The ipv4 compat only support loopback address. Seems it doesn't work with 127.0.0.*.
+        port_value: 13333
+        ipv4_compat: true
+    # We are going to have two filters. One for IPv4, another for Ipv6. This duplicated can be get rid of by the multiple addresses listener support in Envoy.
+    filter_chains:
+    # Here is the filter chain for IPv4. Using the filter_chain_match to filter out ipv4 stream.
+    - filter_chain_match:
+        prefix_ranges:
+        - address_prefix: 172.41.3.14
+          prefix_len: 24
+      filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: dual_stack_cluster
+                  # Add ipv4 metadata for it.
+                  metadata_match:
+                    filter_metadata:
+                      envoy.lb:
+                        ipfamily: 'ipv4'
+          http_filters:
+          - name: envoy.filters.http.router
+    # Here is the filter chain for IPv6.
+    - filter_chain_match:
+        prefix_ranges:
+        - address_prefix: "::FFFF:172.41.3.14" 
+          prefix_len: 64
+      filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: dual_stack_cluster
+                  # Add ipv6 metadata for it.
+                  metadata_match:
+                    filter_metadata:
+                      envoy.lb:
+                        ipfamily: 'ipv6'
+          http_filters:
+          - name: envoy.filters.http.router
+  clusters:
+  - name: dual_stack_cluster
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: round_robin
+    # This is subset loadbanacer config.
+    lb_subset_config:
+      fallback_policy: NO_FALLBACK
+      default_subset:
+        stage: prod
+      subset_selectors:
+      - keys:
+        - ipfamily
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    dns_lookup_family: ALL
+    load_assignment:
+      cluster_name: dual_stack_cluster
+      endpoints:
+      # So we can put ipv4 and ipv6 endpoints in single cluster but with different metadata
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33333
+          metadata:
+            filter_metadata:
+              envoy.lb:
+                ipfamily: 'ipv4'
+        - endpoint:
+            address:
+              socket_address:
+                address: ::1
+                port_value: 33334
+          metadata:
+            filter_metadata:
+              envoy.lb:
+                ipfamily: 'ipv6'
+

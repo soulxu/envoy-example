@@ -1,0 +1,34 @@
+node:
+  id: test
+static_resources:
+  listeners:
+    name: client
+    traffic_direction: OUTBOUND
+    address:
+      socket_address:
+        address: 127.0.0.1
+        port_value: 13333
+    listener_filters:
+    - name: "envoy.filters.listener.tls_inspector"
+    - name: "envoy.filters.listener.http_inspector"
+    filter_chains:
+    - filters:
+      - name: tcp_proxy
+        typed_config:
+          "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+          value:
+            stat_prefix: outbound
+            cluster: outbound
+  clusters:
+  - name: outbound
+    type: STATIC
+    load_assignment:
+      cluster_name: outbound
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33333

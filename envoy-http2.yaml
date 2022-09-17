@@ -1,10 +1,10 @@
-# admin:
-#   access_log_path: /tmp/admin_access.log
-#   address:
-#     socket_address:
-#       protocol: TCP
-#       address: 127.0.0.1
-#       port_value: 9901
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
 static_resources:
   listeners:
   - name: my_listener
@@ -27,13 +27,23 @@ static_resources:
               domains: ["*"]
               routes:
               - match:
-                  prefix: "/"
+                  path: /
+                  headers:
+                  - name: TEST
+                    present_match: false
                 route:
                   cluster: my_cluster
           http_filters:
           - name: envoy.filters.http.router
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+      - name: envoy.filters.network.sni_dynamic_forward_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.sni_dynamic_forward_proxy.v3.FilterConfig
+          port_value: 443
+          dns_cache_config:
+            name: dynamic_forward_proxy_cache_config
+            dns_lookup_family: V4_ONLY
   clusters:
   - name: my_cluster
     connect_timeout: 0.25s
@@ -48,5 +58,5 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: 127.0.0.1
+                address: 0.0.0.0
                 port_value: 33333

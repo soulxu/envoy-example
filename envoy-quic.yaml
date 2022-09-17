@@ -1,0 +1,99 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.8
+      port_value: 9901
+layered_runtime:
+  layers:
+  - name: default
+    static_layer:
+      envoy:
+        reloadable_features:
+          allow_multiple_dns_addresses: true
+static_resources:
+  listeners:
+  - name: my_listener
+    reuse_port: true
+    address:
+      socket_address:
+        protocol: UDP
+        address: 127.0.0.1
+        port_value: 13333
+    bind_to_port: true
+    udp_listener_config:
+      quic_options: {}
+    filter_chains:
+    - filters:
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          codec_type: HTTP3
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: my_cluster
+          http_filters:
+          - name: envoy.filters.http.router
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.quic.v3.QuicDownstreamTransport
+          downstream_tls_context:
+            common_tls_context:
+              tls_certificates:
+                certificate_chain:
+                  inline_string: |
+                    -----BEGIN CERTIFICATE-----
+                    MIICzTCCAbWgAwIBAgIUSim5nTUQ0yac5hLHFwZ/gOcg9ZMwDQYJKoZIhvcNAQEL
+                    BQAwUjELMAkGA1UEBhMCU0UxDzANBgNVBAgTBlNrYW5pYTENMAsGA1UEBxMETHVu
+                    ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjExMjA3
+                    MDcyNDAwWhcNMjYxMjA2MDcyNDAwWjARMQ8wDQYDVQQDEwZTZXJ2ZXIwWTATBgcq
+                    hkjOPQIBBggqhkjOPQMBBwNCAASWgNlaBt9mg+NguLJf8J+X8WLxedHvNXk+ORZY
+                    hyHixmHVUZHK9k+bG7owi+X4wcASXeyTqTKAEN+4sQHdpQXKo4GmMIGjMA4GA1Ud
+                    DwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMB0G
+                    A1UdDgQWBBQGaSvbsnB81vCC+p0JRpW3QhYVfDAfBgNVHSMEGDAWgBQBM5z2SMiW
+                    KNA/ZKndMHZEgRRh0DAuBgNVHREEJzAlgg1zZXJ2ZXIuZG9tYWlugg5zdWIuZG9t
+                    YWluLnRsZIcEfwAAATANBgkqhkiG9w0BAQsFAAOCAQEAhuapxVi3iDfjaiZltjbx
+                    mqP61x/VboAkFXbqEDgbqAMleVehMpZle/IclkX6IzYLDfiUyQdV3m95kC0D1Mit
+                    tTMIyGjwRxT5XudP7v8Ad/7FJAvNYEZcSdjIwcRL89HF2d0a0sjqzxE0gkSUhazo
+                    2miTbMNmxyKoCvzL7r9SsNKddf2P+Bfb/udXCzCLIMIkq+P/etYUc8ZmcaY/QaFk
+                    /boDtcofp7f1IyeLj06bF4/IYPwXzmlxIRzrb524X1o7+0lI6eoZj74xJbJ8/Yyd
+                    CPwGVNqP1lrrmYUQXXZ2d8wsLeP2bTnPjqf58F1cfFfn/pIT/B5JR6p2IcMOcL6r
+                    2A==
+                    -----END CERTIFICATE-----
+                private_key:
+                  inline_string: |
+                    -----BEGIN EC PRIVATE KEY-----
+                    MHcCAQEEIMn+w8+w6y+CDCF8cD1A22V3rGR1xxU/G/79aLoAsIrnoAoGCCqGSM49
+                    AwEHoUQDQgAEloDZWgbfZoPjYLiyX/Cfl/Fi8XnR7zV5PjkWWIch4sZh1VGRyvZP
+                    mxu6MIvl+MHAEl3sk6kygBDfuLEB3aUFyg==
+                    -----END EC PRIVATE KEY-----
+              alpn_protocols:
+                - HTTP/3
+  clusters:
+  - name: my_cluster
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    dns_lookup_family: ALL
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33333

@@ -1,0 +1,33 @@
+resources:
+- "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+  name: my_cluster
+  connect_timeout: 0.25s
+  type: STATIC
+  lb_policy: round_robin
+  protocol_selection: USE_DOWNSTREAM_PROTOCOL
+  http2_protocol_options: {}
+  load_assignment:
+    cluster_name: my_cluster
+    endpoints:
+    - lb_endpoints:
+      - endpoint:
+          address:
+            socket_address:
+              address: 127.0.0.1
+              port_value: 33333
+- "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+  name: my_cluster2
+  connect_timeout: 0.25s
+  type: STATIC
+  lb_policy: round_robin
+  protocol_selection: USE_DOWNSTREAM_PROTOCOL
+  http2_protocol_options: {}
+  load_assignment:
+    cluster_name: my_cluster2
+    endpoints:
+    - lb_endpoints:
+      - endpoint:
+          address:
+            socket_address:
+              address: 127.0.0.1
+              port_value: 33334

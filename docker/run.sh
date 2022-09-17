@@ -1,0 +1,1 @@
+docker run --cap-add NET_ADMIN -v /home/hejiexu/go/src/github/envoyproxy/envoy/bazel-bin/source/exe:/envoy -v /home/hejiexu/go/src/github/soulxu/envoy-example/docker:/docker --network bridgev6 -d envoy-debug

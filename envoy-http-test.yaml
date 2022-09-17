@@ -1,0 +1,102 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.8
+      port_value: 9901
+layered_runtime:
+  layers:
+  - name: default
+    static_layer:
+      envoy:
+        reloadable_features:
+          allow_multiple_dns_addresses: true
+static_resources:
+  listeners:
+  - name: ipv6_listener
+    enable_reuse_port: true
+    address:
+      socket_address:
+        protocol: TCP
+        address: "::FFFF:172.41.3.14"
+        port_value: 13333
+        ipv4_compat: true
+    filter_chains:
+    - filters:
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                direct_response:
+                  status: 201
+          http_filters:
+          - name: envoy.filters.http.router
+  - name: ipv4_listener
+    enable_reuse_port: true
+    address:
+      socket_address:
+        protocol: TCP
+        address: "172.41.3.14"
+        port_value: 13333
+    filter_chains:
+    - filters:
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                direct_response:
+                  status: 202
+          http_filters:
+          - name: envoy.filters.http.router
+  clusters:
+  - name: my_cluster
+    connect_timeout: 0.25s
+    type: LOGICAL_DNS
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    dns_lookup_family: ALL
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33333
+  - name: my_cluster2
+    connect_timeout: 0.25s
+    type: LOGICAL_DNS
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    dns_lookup_family: ALL
+    load_assignment:
+      cluster_name: my_cluster2
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33334

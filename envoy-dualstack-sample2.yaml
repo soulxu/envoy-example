@@ -1,0 +1,101 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+layered_runtime:
+  layers:
+  - name: default
+    static_layer:
+      envoy:
+        reloadable_features:
+          allow_multiple_dns_addresses: true
+static_resources:
+  listeners:
+  - name: dual_stack_listener
+    reuse_port: false
+    addresses:
+    - socket_address:
+        protocol: TCP
+        address: "172.41.3.14"        
+        port_value: 13333
+    - socket_address:
+        protocol: TCP
+        address: "2001:db8:85a3::1"        
+        port_value: 13334
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: dual_stack_cluster
+            request_headers_to_add:
+            - header:
+                key: x-downstream-local-address
+                value: "%DOWNSTREAM_LOCAL_ADDRESS_WITHOUT_PORT%"
+          http_filters:
+          - name: envoy.filters.http.header_to_metadata
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.header_to_metadata.v3.Config
+              request_rules:
+              - header: x-downstream-local-address
+                on_header_present:
+                  metadata_namespace: envoy.lb
+                  key: ipfamily
+                  type: STRING
+                remove: true
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+  - name: dual_stack_cluster
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: round_robin
+    # This is subset loadbanacer config.
+    lb_subset_config:
+      fallback_policy: NO_FALLBACK
+      default_subset:
+        stage: prod
+      subset_selectors:
+      - keys:
+        - ipfamily
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    dns_lookup_family: ALL
+    load_assignment:
+      cluster_name: dual_stack_cluster
+      endpoints:
+      # So we can put ipv4 and ipv6 endpoints in single cluster but with different metadata
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33333
+          metadata:
+            filter_metadata:
+              envoy.lb:
+                ipfamily: '172.41.3.14'
+        - endpoint:
+            address:
+              socket_address:
+                address: ::1
+                port_value: 33334
+          metadata:
+            filter_metadata:
+              envoy.lb:
+                ipfamily: '2001:db8:85a3::1'
+

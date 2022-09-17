@@ -1,10 +1,10 @@
-# admin:
-#   access_log_path: /tmp/admin_access.log
-#   address:
-#     socket_address:
-#       protocol: TCP
-#       address: 127.0.0.1
-#       port_value: 9901
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
 static_resources:
   listeners:
   - name: my_listener
@@ -27,7 +27,7 @@ static_resources:
               domains: ["*"]
               routes:
               - match:
-                  prefix: "/"
+                  path: "/"
                 route:
                   cluster: my_cluster
           http_filters:
@@ -37,10 +37,22 @@ static_resources:
   clusters:
   - name: my_cluster
     connect_timeout: 0.25s
-    type: strict_dns
+    type: static
     lb_policy: round_robin
     protocol_selection: USE_DOWNSTREAM_PROTOCOL
     http2_protocol_options: {}
+    health_checks:
+    - interval:
+        seconds: 1
+      timeout:
+        seconds: 3
+      unhealthy_threshold: 1
+      healthy_threshold: 100
+      http_health_check:
+        path: '/'
+        expected_statuses:
+        - start: 300
+          end: 301
     load_assignment:
       cluster_name: my_cluster
       endpoints:
@@ -48,5 +60,5 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: 127.0.0.1
+                address: 0.0.0.0
                 port_value: 33333

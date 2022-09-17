@@ -1,18 +1,29 @@
-# admin:
-#   access_log_path: /tmp/admin_access.log
-#   address:
-#     socket_address:
-#       protocol: TCP
-#       address: 127.0.0.1
-#       port_value: 9901
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+layered_runtime:
+  layers:
+  - name: default
+    static_layer:
+      envoy:
+        reloadable_features:
+          allow_multiple_dns_addresses: true
 static_resources:
   listeners:
   - name: my_listener
-    address:
-      socket_address:
-        protocol: TCP
-        address: 0.0.0.0
-        port_value: 13333
+    addresses:
+    - socket_address:
+          protocol: TCP
+          address: 127.0.0.1
+          port_value: 0
+    - socket_address:
+          protocol: TCP
+          address: 172.41.3.14
+          port_value: 0
     filter_chains:
     - filters:
       # The HTTP connection manager is the only network filter.
@@ -37,10 +48,11 @@ static_resources:
   clusters:
   - name: my_cluster
     connect_timeout: 0.25s
-    type: strict_dns
+    type: LOGICAL_DNS
     lb_policy: round_robin
     protocol_selection: USE_DOWNSTREAM_PROTOCOL
     http2_protocol_options: {}
+    dns_lookup_family: ALL
     load_assignment:
       cluster_name: my_cluster
       endpoints:
@@ -50,3 +62,4 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 33333
+

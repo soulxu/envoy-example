@@ -1,21 +1,20 @@
-# admin:
-#   access_log_path: /tmp/admin_access.log
-#   address:
-#     socket_address:
-#       protocol: TCP
-#       address: 127.0.0.1
-#       port_value: 9901
+
+admin:
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9902
 static_resources:
   listeners:
-  - name: my_listener
+  - name: listener_0
     address:
       socket_address:
         protocol: TCP
-        address: 0.0.0.0
+        address: 127.0.0.1
         port_value: 13333
     filter_chains:
     - filters:
-      # The HTTP connection manager is the only network filter.
       - name: envoy.filters.network.http_connection_manager
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
@@ -24,25 +23,27 @@ static_resources:
             name: local_route
             virtual_hosts:
             - name: local_service
-              domains: ["*"]
+              domains:
+              - "*"
               routes:
               - match:
-                  prefix: "/"
+                  connect_matcher:
+                    {}
                 route:
-                  cluster: my_cluster
+                  cluster: cluster_0
+              request_mirror_policies:
+                cluster: mirror_cluster
           http_filters:
           - name: envoy.filters.http.router
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+          upgrade_configs:
+          - upgrade_type: CONNECT
   clusters:
-  - name: my_cluster
-    connect_timeout: 0.25s
-    type: strict_dns
-    lb_policy: round_robin
-    protocol_selection: USE_DOWNSTREAM_PROTOCOL
-    http2_protocol_options: {}
+  - name: cluster_0
+    connect_timeout: 5s
     load_assignment:
-      cluster_name: my_cluster
+      cluster_name: cluster_0
       endpoints:
       - lb_endpoints:
         - endpoint:
@@ -50,3 +51,15 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 33333
+  - name: mirror_cluster
+    connect_timeout: 5s
+    load_assignment:
+      cluster_name: mirror_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33334
+

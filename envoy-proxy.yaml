@@ -1,0 +1,50 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+layered_runtime:
+  layers:
+  - name: default
+    static_layer:
+      envoy:
+        reloadable_features:
+          new_tcp_connection_pool: true
+static_resources:
+  listeners:
+  - name: my_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 13333
+    listener_filters:
+    - name: envoy.filters.listener.proxy_protocol
+      typed_config: {}
+    - name: envoy.filters.listener.proxy_protocol
+      typed_config: {}
+    filter_chains:
+    - name: directsource_localhost_and_source_1.2.3.0/24
+      filters:
+        - name: envoy.tcp_proxy
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+            stat_prefix: ingress_tcp
+            cluster: my_cluster
+  clusters:
+  - name: my_cluster
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33333

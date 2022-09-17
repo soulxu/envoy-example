@@ -30,6 +30,8 @@ static_resources:
                   prefix: "/"
                 route:
                   cluster: my_cluster
+              request_mirror_policies:
+                cluster: mirror_cluster
           http_filters:
           - name: envoy.filters.http.router
             typed_config:
@@ -50,3 +52,18 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 33333
+  - name: mirror_cluster
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: mirror_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33334

@@ -1,0 +1,90 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+static_resources:
+  listeners:
+  - name: my_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 13333
+    filter_chains:
+    - filters:
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: my_cluster
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+  - name: my_cluster
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    dns_lookup_family: ALL
+    preconnect_policy:
+      per_upstream_preconnect_ratio: 2
+    transport_socket_matches:
+      name: upstream_tls
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+              certificate_chain:
+                inline_string: |
+                  -----BEGIN CERTIFICATE-----
+                  MIICqjCCAZKgAwIBAgIUWPfDEinOBmG5YNcMgdKSbYNRz+YwDQYJKoZIhvcNAQEL
+                  BQAwUjELMAkGA1UEBhMCU0UxDzANBgNVBAgTBlNrYW5pYTENMAsGA1UEBxMETHVu
+                  ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjEwNzE4
+                  MTAxNTAwWhcNMjYwNzE3MTAxNTAwWjARMQ8wDQYDVQQDEwZDbGllbnQwWTATBgcq
+                  hkjOPQIBBggqhkjOPQMBBwNCAARgmOeIb5hfUgykSY9tQYa3prXSHbFtyV0vVuEG
+                  DmGRp9lfWiZmLgs5IvzPY+Bqe5kMUHDyazIqG5haSuJ4ioAYo4GDMIGAMA4GA1Ud
+                  DwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0G
+                  A1UdDgQWBBRlyZ2P89bZkE6GVqsTzfOxV8ZF8zAfBgNVHSMEGDAWgBSHvaJ+L2Wd
+                  d0myk3raOT9X0kxYgjALBgNVHREEBDACggAwDQYJKoZIhvcNAQELBQADggEBALNP
+                  r6KJEWEv43xVAIAhwFuy2pd3D+ESyWoku1Xb+wQruduaaVVyPbrNRgdQjWouAmLg
+                  /NOLr3xR4CO/baxIg7xdPtlwHtNvZPY49gq8TRRuEgwAnn3PvFJqwazuVXRqrewP
+                  9b8Gwwf9JHGROQDDL2kAYxHLE4Fl2+qkgNEC42HOu1T72WyEcnFw+Tt1ULglkEO+
+                  S818Ztw8F7OFGqszAoDDiacKPsTYn/nCqAERv1xi/dqxl6f68LgYafjLVLUJuWCe
+                  UYt0k+tAEGTI54NtnZSGl+ohX3IWVm3ZmVthS/aFj7VWkoFr0f+KD5W6IGCZzOlu
+                  j0+0KJYKCl65LxZGXGs=
+                  -----END CERTIFICATE-----
+              private_key:
+                inline_string: |
+                  -----BEGIN EC PRIVATE KEY-----
+                  MHcCAQEEIEZDXsuRjHbfgwydwNGxrHDH238CVNro+FqLI+oj/fG3oAoGCCqGSM49
+                  AwEHoUQDQgAEYJjniG+YX1IMpEmPbUGGt6a10h2xbcldL1bhBg5hkafZX1omZi4L
+                  OSL8z2PganuZDFBw8msyKhuYWkrieIqAGA==
+                  -----END EC PRIVATE KEY-----
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33333
+

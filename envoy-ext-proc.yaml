@@ -1,0 +1,84 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+static_resources:
+  listeners:
+  - name: my_listener
+    reuse_port: false
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 13333
+    filter_chains:
+    - filters:
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  path: "/"
+                route:
+                  cluster: my_cluster
+                typed_per_filter_config:
+                  envoy.filters.http.ext_proc:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3alpha.ExtProcPerRoute
+                    overrides:
+              typed_per_filter_config:
+                envoy.filters.http.ext_proc:
+                  "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3alpha.ExtProcPerRoute
+                  overrides:
+                    processing_mode:
+                      request_body_mode: BUFFERED
+          http_filters:
+          - name: envoy.filters.http.ext_proc
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3alpha.ExternalProcessor
+              grpc_service:
+                envoy_grpc:
+                  cluster_name: ext_proc_cluster
+              processing_mode:
+                request_body_mode: STREAMED
+          - name: envoy.filters.http.router
+  clusters:
+  - name: my_cluster
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33333
+  - name: ext_proc_cluster
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33338
