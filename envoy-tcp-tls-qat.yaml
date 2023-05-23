@@ -1,0 +1,95 @@
+static_resources:
+  listeners:
+  - name: my_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 23333
+    filter_chains:
+      - filters:
+        - name: envoy.filters.network.tcp_proxy
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+            stat_prefix: ingress_tcp
+            cluster: foo.example.com
+        transport_socket:
+          name: envoy.transport_sockets.tls
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+            common_tls_context:
+              tls_certificates:
+                certificate_chain:
+                  inline_string: |
+                    -----BEGIN CERTIFICATE-----
+                    MIIDmDCCAoCgAwIBAgIUc8n476i51KzoISzJEeZqW177C3kwDQYJKoZIhvcNAQEL
+                    BQAwUjELMAkGA1UEBhMCU0UxDzANBgNVBAgTBlNrYW5pYTENMAsGA1UEBxMETHVu
+                    ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjMwMTA2
+                    MDY0ODAwWhcNMjgwMTA1MDY0ODAwWjARMQ8wDQYDVQQDEwZTZXJ2ZXIwggEiMA0G
+                    CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvdRA4X5MLt4JmRNqMq682J7IdgwVr
+                    DUkDMow5f6dHhdVhGhRJ+DJv2nHAbGTv5h/94+gKUYGU1kQvZnIEhaywQLuUiEVj
+                    9Wk6wSH0z2kYos06r6sgCeN1j1vt1JcEH6WTxaUqOMkxWX4nZg0egUl0R9z6bTTx
+                    M15/VwJHPiHWbn7odFNjSREBWpEl3vfyYajNqXP99yV3x4vbeuDgMjV10wlJlPZI
+                    i+o6WGUO15WVG0R3/1IDmmQ05qvv8dtn23u5kABG2UfWP4PjJqA7shrs8aKhAzkH
+                    mAqmZzvhlu8irCQ84zY5bv7uCYfKuUQMN+GnXfmW83e03oN3W0l4kL5xAgMBAAGj
+                    gaYwgaMwDgYDVR0PAQH/BAQDAgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1Ud
+                    EwEB/wQCMAAwHQYDVR0OBBYEFMZ8MdtZ0Za/1ZilGRxYq5btlHAoMB8GA1UdIwQY
+                    MBaAFNfOxr1pjNwZU+lYjyZ6kwRPQEqaMC4GA1UdEQQnMCWCDXNlcnZlci5kb21h
+                    aW6CDnN1Yi5kb21haW4udGxkhwR/AAABMA0GCSqGSIb3DQEBCwUAA4IBAQCXYNXH
+                    ktkMGO2F7GvON3Hbm3m/DEUlDG6Thbu4oyk5wVHmv+z2XMX5G9tbZo6aSj9thLFF
+                    uzakp+nORrmCe57mNwFJgWVFMom/LYXG4VSHE0MYvF/GkUXwwbm5/7xuMNlBwwno
+                    oztNRxHl/CBODYeCxTVEoiBBKj4u10ouM2i1dWOZnEOqM27ltRdQkXoglf9uf/Vr
+                    kcAFkKe7tHkyVW+jz1WSxuU3xxLaepeoslOwyam9F0loydxnOEc98yh9KhzwRoFe
+                    Buxwiojs84N77cfEG0TRMM0zkhtVynfSt/dT5U1FzdUQSOq0BFh65nV4TMZ8hIsq
+                    5oBU7RQ12JlDUfYk
+                    -----END CERTIFICATE-----
+                private_key_provider:
+                  provider_name: qat
+                  typed_config:  
+                    "@type": "type.googleapis.com/envoy.extensions.private_key_providers.qat.v3alpha.QatPrivateKeyMethodConfig"
+                    private_key:
+                      inline_string: |
+                        -----BEGIN RSA PRIVATE KEY-----
+                        MIIEowIBAAKCAQEAr3UQOF+TC7eCZkTajKuvNieyHYMFaw1JAzKMOX+nR4XVYRoU
+                        Sfgyb9pxwGxk7+Yf/ePoClGBlNZEL2ZyBIWssEC7lIhFY/VpOsEh9M9pGKLNOq+r
+                        IAnjdY9b7dSXBB+lk8WlKjjJMVl+J2YNHoFJdEfc+m008TNef1cCRz4h1m5+6HRT
+                        Y0kRAVqRJd738mGozalz/fcld8eL23rg4DI1ddMJSZT2SIvqOlhlDteVlRtEd/9S
+                        A5pkNOar7/HbZ9t7uZAARtlH1j+D4yagO7Ia7PGioQM5B5gKpmc74ZbvIqwkPOM2
+                        OW7+7gmHyrlEDDfhp135lvN3tN6Dd1tJeJC+cQIDAQABAoIBAC31vST3LB6CmF7P
+                        pGv6wO+voEGIw4+SMFDtGbwqCxh6HzXLTgs+P3/7OZbNDfelUTYBUBP727SwF7ZO
+                        4Ij8twqIOlqjA4I2k7T3SDzHY+E3LAk2YN4ImRN/VPZMnK5Q19+Ig0Y3D8Ski54o
+                        ZkFaXnJeLK1Qk/Cmoxc6JHei99wiMIVyjh3sG1uXD2f3WsBjBYBMBSj4Z/2TZeP3
+                        3zP1M7y3H9Z1atGu+xT4eDuuXikGKX5G0n3YwwX+4Qrc74TPsoOxaGOp26WNMSGF
+                        7Ce4ymUPIsbJFCfJwWbOfCdz+iZ9HKAoLgX8MuBemYCUfCAlvZuKSBbznYktPSGC
+                        SXdWQp0CgYEA0vEM1PuRvL2m+O1QVQn25kcQC6ff+Lnm5QGAqqhLDS/PUwshUZ5a
+                        iSGGs0fjbdaN9Fjddenp80VE604INLCDxfNVDathj5bXZSAmJT5bU9xpzjTp5xyz
+                        B/ZZO9T0mC+Np7YmLOoGnmLV4qXWnDIiKUQL70EDfHehOkIRIq2anncCgYEA1O+e
+                        b/KuScF7F4MfVb2MJnamcvQ6NFUVMiRg6RRUvNimRyNtQbCux9Qnjn4J00KYjJWm
+                        mQ83jH9nMPDrJtTwvEzUg36UKvZPEnpsOhENy37rLZ01Fm8rFKnh9vQpOkQtuaIP
+                        iyoQXdnfQhQrOTU3Ukdvocgnxq0lF/TctdZnPFcCgYBMEriw+sT1T2QvM86bzIsp
+                        QwmLWpCQb+LQRfl0Elt2tv5LEaGDgNtfxyJ/93YSv6TUMVQ02RYRMLMJNUwKTHpJ
+                        YlcTJfJ6SUkG5FA9cD6ZgMz7m+ObAKOkRHir9kH7vHKWwD8GRaP7bON76Jj8Haxq
+                        O2sebtDmC3KuwvLREdDIQwKBgHvuJlljdhrJOBn8H72oPyyXu9KF4GZa6qYvVBPz
+                        2Em9EjGvJcSoz2DQUmF1a8SAKwcPhlHo8FyePfHXFhWYs6/0S29ouVWz21uW0uyM
+                        xmmcqcX3jFFNTFaPdUtk2aXmznIPJ1rIlZP53R25XVrDZTpHB2qycqwIU+F4iwhu
+                        C9GrAoGBAJYj3A79kxvuBNuXnw8XRHmlSkQ5qF44XfuFmSFYTWXT2R6JnulDpxsj
+                        Pl3+0hc7m0DwZ/N+E2cvokajdD+SkKDwvksRPmzy4zdZzyTgIuoaZLAgSX47Tj0r
+                        NnBG1EK2W+T+lApIi6IGHZ4W0eUOpX8LOGYmTlrmjpahRQPnmDiI
+                        -----END RSA PRIVATE KEY-----
+                    poll_delay:
+                      seconds: 1
+  clusters:
+  - name: foo.example.com
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    load_assignment:
+      cluster_name: foo.example.com
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33333

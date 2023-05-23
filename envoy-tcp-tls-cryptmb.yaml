@@ -1,0 +1,76 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.1
+      port_value: 9901
+static_resources:
+  listeners:
+  - name: my_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 13333
+    filter_chains:
+      - filters:
+        - name: envoy.filters.network.tcp_proxy
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+            stat_prefix: ingress_tcp
+            cluster: foo.example.com
+        transport_socket:
+          name: envoy.transport_sockets.tls
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+            common_tls_context:
+              tls_certificates:
+                certificate_chain:
+                  inline_string: |
+                    -----BEGIN CERTIFICATE-----
+                    MIICzTCCAbWgAwIBAgIULit/dBP5a7SpS5PCqptVusN3/ZYwDQYJKoZIhvcNAQEL
+                    BQAwUjELMAkGA1UEBhMCU0UxDzANBgNVBAgTBlNrYW5pYTENMAsGA1UEBxMETHVu
+                    ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjMwMTA1
+                    MDczOTAwWhcNMjgwMTA0MDczOTAwWjARMQ8wDQYDVQQDEwZTZXJ2ZXIwWTATBgcq
+                    hkjOPQIBBggqhkjOPQMBBwNCAAQ3bDiQOdsPg0wBqv9iU0z6CzFyBWNE2VgNhCMs
+                    NutID9h727mIpbpbHQhHxRdpTX5lJw/hj8vAw1NKgatYryzEo4GmMIGjMA4GA1Ud
+                    DwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMB0G
+                    A1UdDgQWBBRJz3iHfVxKwSn01rA4sDGxOHuazTAfBgNVHSMEGDAWgBTXzsa9aYzc
+                    GVPpWI8mepMET0BKmjAuBgNVHREEJzAlgg1zZXJ2ZXIuZG9tYWlugg5zdWIuZG9t
+                    YWluLnRsZIcEfwAAATANBgkqhkiG9w0BAQsFAAOCAQEAVuHfGrnZp3ppWiGPeG/w
+                    C96lDu8XLsD+JPpZgo8BM3lIgogzOOkbOWYwdj+9JSgvbZbMGD1VXrQQtLAF+FkH
+                    Nb72wOkX405TEKy/7StON6iR4+YiFFb0CLKB6C4SrVXEs/L0Bvi2cOuPNsZuSK46
+                    hf2vq6pBGv/EbHDDbhwHKNbzpnDrrXaKglczYhf9OBkJB8cWIfKdsXOGKNMax6RB
+                    OAbGhwM+RXrnISqB/4ihk47tEFOWs3JV1iXdySXiHEwBinAZRIRf07DXhudHnJ1q
+                    6wClyBNCSgeH8lpWj9F+vNdoGF4lYNgt/bl8LQ5LgpDdyo3lw1qR8yuul1VfL2Ca
+                    4A==
+                    -----END CERTIFICATE-----
+                private_key_provider:
+                  provider_name: cryptomb
+                  typed_config:  
+                    "@type": type.googleapis.com/envoy.extensions.private_key_providers.cryptomb.v3alpha.CryptoMbPrivateKeyMethodConfig 
+                    private_key:
+                      inline_string: |
+                        -----BEGIN EC PRIVATE KEY-----
+                        MHcCAQEEIP6aIW7P533h+B6bAv2Wshmauob8RtkypNgMniXME3PCoAoGCCqGSM49
+                        AwEHoUQDQgAEN2w4kDnbD4NMAar/YlNM+gsxcgVjRNlYDYQjLDbrSA/Ye9u5iKW6
+                        Wx0IR8UXaU1+ZScP4Y/LwMNTSoGrWK8sxA==
+                        -----END EC PRIVATE KEY-----
+                    poll_delay:
+                      seconds: 1
+  clusters:
+  - name: foo.example.com
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    load_assignment:
+      cluster_name: foo.example.com
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 0.0.0.0
+                port_value: 33333

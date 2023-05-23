@@ -13,11 +13,6 @@ static_resources:
         protocol: TCP
         address: 0.0.0.0
         port_value: 13333
-    listener_filters:
-    - name: envoy.filters.listener.proxy_protocol
-      typed_config: {}
-    - name: envoy.filters.listener.tls_inspector
-      typed_config: {}
     filter_chains:
       filters:
       - name: envoy.filters.network.http_connection_manager
@@ -36,6 +31,8 @@ static_resources:
                   cluster: foo.example.com
           http_filters:
           - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
@@ -45,29 +42,29 @@ static_resources:
               certificate_chain:
                 inline_string: |
                   -----BEGIN CERTIFICATE-----
-                  MIICzTCCAbWgAwIBAgIUSim5nTUQ0yac5hLHFwZ/gOcg9ZMwDQYJKoZIhvcNAQEL
+                  MIICzTCCAbWgAwIBAgIULit/dBP5a7SpS5PCqptVusN3/ZYwDQYJKoZIhvcNAQEL
                   BQAwUjELMAkGA1UEBhMCU0UxDzANBgNVBAgTBlNrYW5pYTENMAsGA1UEBxMETHVu
-                  ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjExMjA3
-                  MDcyNDAwWhcNMjYxMjA2MDcyNDAwWjARMQ8wDQYDVQQDEwZTZXJ2ZXIwWTATBgcq
-                  hkjOPQIBBggqhkjOPQMBBwNCAASWgNlaBt9mg+NguLJf8J+X8WLxedHvNXk+ORZY
-                  hyHixmHVUZHK9k+bG7owi+X4wcASXeyTqTKAEN+4sQHdpQXKo4GmMIGjMA4GA1Ud
+                  ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjMwMTA1
+                  MDczOTAwWhcNMjgwMTA0MDczOTAwWjARMQ8wDQYDVQQDEwZTZXJ2ZXIwWTATBgcq
+                  hkjOPQIBBggqhkjOPQMBBwNCAAQ3bDiQOdsPg0wBqv9iU0z6CzFyBWNE2VgNhCMs
+                  NutID9h727mIpbpbHQhHxRdpTX5lJw/hj8vAw1NKgatYryzEo4GmMIGjMA4GA1Ud
                   DwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMB0G
-                  A1UdDgQWBBQGaSvbsnB81vCC+p0JRpW3QhYVfDAfBgNVHSMEGDAWgBQBM5z2SMiW
-                  KNA/ZKndMHZEgRRh0DAuBgNVHREEJzAlgg1zZXJ2ZXIuZG9tYWlugg5zdWIuZG9t
-                  YWluLnRsZIcEfwAAATANBgkqhkiG9w0BAQsFAAOCAQEAhuapxVi3iDfjaiZltjbx
-                  mqP61x/VboAkFXbqEDgbqAMleVehMpZle/IclkX6IzYLDfiUyQdV3m95kC0D1Mit
-                  tTMIyGjwRxT5XudP7v8Ad/7FJAvNYEZcSdjIwcRL89HF2d0a0sjqzxE0gkSUhazo
-                  2miTbMNmxyKoCvzL7r9SsNKddf2P+Bfb/udXCzCLIMIkq+P/etYUc8ZmcaY/QaFk
-                  /boDtcofp7f1IyeLj06bF4/IYPwXzmlxIRzrb524X1o7+0lI6eoZj74xJbJ8/Yyd
-                  CPwGVNqP1lrrmYUQXXZ2d8wsLeP2bTnPjqf58F1cfFfn/pIT/B5JR6p2IcMOcL6r
-                  2A==
+                  A1UdDgQWBBRJz3iHfVxKwSn01rA4sDGxOHuazTAfBgNVHSMEGDAWgBTXzsa9aYzc
+                  GVPpWI8mepMET0BKmjAuBgNVHREEJzAlgg1zZXJ2ZXIuZG9tYWlugg5zdWIuZG9t
+                  YWluLnRsZIcEfwAAATANBgkqhkiG9w0BAQsFAAOCAQEAVuHfGrnZp3ppWiGPeG/w
+                  C96lDu8XLsD+JPpZgo8BM3lIgogzOOkbOWYwdj+9JSgvbZbMGD1VXrQQtLAF+FkH
+                  Nb72wOkX405TEKy/7StON6iR4+YiFFb0CLKB6C4SrVXEs/L0Bvi2cOuPNsZuSK46
+                  hf2vq6pBGv/EbHDDbhwHKNbzpnDrrXaKglczYhf9OBkJB8cWIfKdsXOGKNMax6RB
+                  OAbGhwM+RXrnISqB/4ihk47tEFOWs3JV1iXdySXiHEwBinAZRIRf07DXhudHnJ1q
+                  6wClyBNCSgeH8lpWj9F+vNdoGF4lYNgt/bl8LQ5LgpDdyo3lw1qR8yuul1VfL2Ca
+                  4A==
                   -----END CERTIFICATE-----
               private_key:
                 inline_string: |
                   -----BEGIN EC PRIVATE KEY-----
-                  MHcCAQEEIMn+w8+w6y+CDCF8cD1A22V3rGR1xxU/G/79aLoAsIrnoAoGCCqGSM49
-                  AwEHoUQDQgAEloDZWgbfZoPjYLiyX/Cfl/Fi8XnR7zV5PjkWWIch4sZh1VGRyvZP
-                  mxu6MIvl+MHAEl3sk6kygBDfuLEB3aUFyg==
+                  MHcCAQEEIP6aIW7P533h+B6bAv2Wshmauob8RtkypNgMniXME3PCoAoGCCqGSM49
+                  AwEHoUQDQgAEN2w4kDnbD4NMAar/YlNM+gsxcgVjRNlYDYQjLDbrSA/Ye9u5iKW6
+                  Wx0IR8UXaU1+ZScP4Y/LwMNTSoGrWK8sxA==
                   -----END EC PRIVATE KEY-----
   clusters:
   - name: foo.example.com
@@ -82,19 +79,6 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: 0.0.0.0
+                address: 127.0.0.1
                 port_value: 33333
-  - name: bar.example.com
-    connect_timeout: 0.25s
-    type: strict_dns
-    lb_policy: round_robin
-    protocol_selection: USE_DOWNSTREAM_PROTOCOL
-    load_assignment:
-      cluster_name: bar.example.com
-      endpoints:
-      - lb_endpoints:
-        - endpoint:
-            address:
-              socket_address:
-                address: 0.0.0.0
-                port_value: 33334
+

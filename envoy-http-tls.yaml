@@ -55,28 +55,29 @@ static_resources:
               certificate_chain:
                 inline_string: |
                   -----BEGIN CERTIFICATE-----
-                  MIICqjCCAZKgAwIBAgIUWPfDEinOBmG5YNcMgdKSbYNRz+YwDQYJKoZIhvcNAQEL
+                  MIICzTCCAbWgAwIBAgIULit/dBP5a7SpS5PCqptVusN3/ZYwDQYJKoZIhvcNAQEL
                   BQAwUjELMAkGA1UEBhMCU0UxDzANBgNVBAgTBlNrYW5pYTENMAsGA1UEBxMETHVu
-                  ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjEwNzE4
-                  MTAxNTAwWhcNMjYwNzE3MTAxNTAwWjARMQ8wDQYDVQQDEwZDbGllbnQwWTATBgcq
-                  hkjOPQIBBggqhkjOPQMBBwNCAARgmOeIb5hfUgykSY9tQYa3prXSHbFtyV0vVuEG
-                  DmGRp9lfWiZmLgs5IvzPY+Bqe5kMUHDyazIqG5haSuJ4ioAYo4GDMIGAMA4GA1Ud
-                  DwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0G
-                  A1UdDgQWBBRlyZ2P89bZkE6GVqsTzfOxV8ZF8zAfBgNVHSMEGDAWgBSHvaJ+L2Wd
-                  d0myk3raOT9X0kxYgjALBgNVHREEBDACggAwDQYJKoZIhvcNAQELBQADggEBALNP
-                  r6KJEWEv43xVAIAhwFuy2pd3D+ESyWoku1Xb+wQruduaaVVyPbrNRgdQjWouAmLg
-                  /NOLr3xR4CO/baxIg7xdPtlwHtNvZPY49gq8TRRuEgwAnn3PvFJqwazuVXRqrewP
-                  9b8Gwwf9JHGROQDDL2kAYxHLE4Fl2+qkgNEC42HOu1T72WyEcnFw+Tt1ULglkEO+
-                  S818Ztw8F7OFGqszAoDDiacKPsTYn/nCqAERv1xi/dqxl6f68LgYafjLVLUJuWCe
-                  UYt0k+tAEGTI54NtnZSGl+ohX3IWVm3ZmVthS/aFj7VWkoFr0f+KD5W6IGCZzOlu
-                  j0+0KJYKCl65LxZGXGs=
+                  ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjMwMTA1
+                  MDczOTAwWhcNMjgwMTA0MDczOTAwWjARMQ8wDQYDVQQDEwZTZXJ2ZXIwWTATBgcq
+                  hkjOPQIBBggqhkjOPQMBBwNCAAQ3bDiQOdsPg0wBqv9iU0z6CzFyBWNE2VgNhCMs
+                  NutID9h727mIpbpbHQhHxRdpTX5lJw/hj8vAw1NKgatYryzEo4GmMIGjMA4GA1Ud
+                  DwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMB0G
+                  A1UdDgQWBBRJz3iHfVxKwSn01rA4sDGxOHuazTAfBgNVHSMEGDAWgBTXzsa9aYzc
+                  GVPpWI8mepMET0BKmjAuBgNVHREEJzAlgg1zZXJ2ZXIuZG9tYWlugg5zdWIuZG9t
+                  YWluLnRsZIcEfwAAATANBgkqhkiG9w0BAQsFAAOCAQEAVuHfGrnZp3ppWiGPeG/w
+                  C96lDu8XLsD+JPpZgo8BM3lIgogzOOkbOWYwdj+9JSgvbZbMGD1VXrQQtLAF+FkH
+                  Nb72wOkX405TEKy/7StON6iR4+YiFFb0CLKB6C4SrVXEs/L0Bvi2cOuPNsZuSK46
+                  hf2vq6pBGv/EbHDDbhwHKNbzpnDrrXaKglczYhf9OBkJB8cWIfKdsXOGKNMax6RB
+                  OAbGhwM+RXrnISqB/4ihk47tEFOWs3JV1iXdySXiHEwBinAZRIRf07DXhudHnJ1q
+                  6wClyBNCSgeH8lpWj9F+vNdoGF4lYNgt/bl8LQ5LgpDdyo3lw1qR8yuul1VfL2Ca
+                  4A==
                   -----END CERTIFICATE-----
               private_key:
                 inline_string: |
                   -----BEGIN EC PRIVATE KEY-----
-                  MHcCAQEEIEZDXsuRjHbfgwydwNGxrHDH238CVNro+FqLI+oj/fG3oAoGCCqGSM49
-                  AwEHoUQDQgAEYJjniG+YX1IMpEmPbUGGt6a10h2xbcldL1bhBg5hkafZX1omZi4L
-                  OSL8z2PganuZDFBw8msyKhuYWkrieIqAGA==
+                  MHcCAQEEIP6aIW7P533h+B6bAv2Wshmauob8RtkypNgMniXME3PCoAoGCCqGSM49
+                  AwEHoUQDQgAEN2w4kDnbD4NMAar/YlNM+gsxcgVjRNlYDYQjLDbrSA/Ye9u5iKW6
+                  Wx0IR8UXaU1+ZScP4Y/LwMNTSoGrWK8sxA==
                   -----END EC PRIVATE KEY-----
     load_assignment:
       cluster_name: my_cluster

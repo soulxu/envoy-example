@@ -1,0 +1,127 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 127.0.0.8
+      port_value: 9901
+static_resources:
+  listeners:
+  - name: my_listener
+    reuse_port: true
+    address:
+      socket_address:
+        protocol: UDP
+        address: 127.0.0.1
+        port_value: 13333
+    bind_to_port: true
+    udp_listener_config:
+      quic_options: {}
+    filter_chains:
+    - filters:
+      # The HTTP connection manager is the only network filter.
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          codec_type: HTTP3
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: my_cluster
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.quic.v3.QuicDownstreamTransport
+          downstream_tls_context:
+            common_tls_context:
+              tls_certificates:
+                certificate_chain:
+                  inline_string: |
+                    -----BEGIN CERTIFICATE-----
+                    MIIDmDCCAoCgAwIBAgIUNPn9fIITl60/3DMu8XGJYDVmSS0wDQYJKoZIhvcNAQEL
+                    BQAwUjELMAkGA1UEBhMCU0UxDzANBgNVBAgTBlNrYW5pYTENMAsGA1UEBxMETHVu
+                    ZDERMA8GA1UEChMISml0ZXNvZnQxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMjMwMjI3
+                    MDkwMzAwWhcNMjgwMjI2MDkwMzAwWjARMQ8wDQYDVQQDEwZTZXJ2ZXIwggEiMA0G
+                    CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDWDjXkPxPk1m3oQ3ckQ9kxX63ISgUy
+                    nP9oI3UfHLT29+DuoPjzcKU2SiHKPvaxfXg/KMKU761c9unJr//iLxbU6JMt4NsT
+                    4AQDayN+yqu93WXvHBDNTUVjbwGajV8e7tVe3LXYT4MMBB7HXKagciTX/OSIEX9h
+                    bfc0i/Huwt0xNkE3r4qkQ01PQNBGzaYgExWS06UBQwXp+b7eFWXyk2DHLEeox8sZ
+                    QZr5wvOuUalLShonRwsg5ZbSebbUXGUVCB1dUjsIvQUP1HrSATEel9++WNP7+2Kz
+                    vQ2p91z4znvU5Iaqqr+MJEIUeoP56VtWkKCTTUu90FYj1VWeRGA7YzphAgMBAAGj
+                    gaYwgaMwDgYDVR0PAQH/BAQDAgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1Ud
+                    EwEB/wQCMAAwHQYDVR0OBBYEFHFEayOJ1B6Ckbf8giktH6q3XUBtMB8GA1UdIwQY
+                    MBaAFNM4suoepGjtwcqOv+RvbRQs5h1XMC4GA1UdEQQnMCWCDXNlcnZlci5kb21h
+                    aW6CDnN1Yi5kb21haW4udGxkhwR/AAABMA0GCSqGSIb3DQEBCwUAA4IBAQBkXPF2
+                    DUAWO8bD9B4sPawhtpAP/cbOsbpGQGZSPwKCCZWxIq+WTtE1hKQPh/yrd4Jk1kkw
+                    +U67gJ+dT0AbymaPqYGRWCh/8hzABFjSJ8l+l8AJYCJg/kWu1YPqRYn4mJ7fBB+R
+                    x4ZtCLufuUFLtg+IcPDbiRcw0okmxfNfxYFWM0fbG2Vq3oHOeoR0NOR7z1BqGpp6
+                    zHfJSSxr2Zc7ZPpcRDCI3iPwGea8kddf/7Ev1zvN5xIty7JjCUiJh+FVyWlBrp4a
+                    IB+Qicd9cmVKonswOac676xIx0syfUcob50/XyzGhNBGHfRFNq1GUepY1omCDcOs
+                    Pq0EzY7Ip9/JjSJo
+                    -----END CERTIFICATE-----
+                private_key_provider:
+                  provider_name: qat
+                  typed_config:  
+                    "@type": "type.googleapis.com/envoy.extensions.private_key_providers.qat.v3alpha.QatPrivateKeyMethodConfig"
+                    private_key:
+                      inline_string: |
+                        -----BEGIN RSA PRIVATE KEY-----
+                        MIIEpQIBAAKCAQEA1g415D8T5NZt6EN3JEPZMV+tyEoFMpz/aCN1Hxy09vfg7qD4
+                        83ClNkohyj72sX14PyjClO+tXPbpya//4i8W1OiTLeDbE+AEA2sjfsqrvd1l7xwQ
+                        zU1FY28Bmo1fHu7VXty12E+DDAQex1ymoHIk1/zkiBF/YW33NIvx7sLdMTZBN6+K
+                        pENNT0DQRs2mIBMVktOlAUMF6fm+3hVl8pNgxyxHqMfLGUGa+cLzrlGpS0oaJ0cL
+                        IOWW0nm21FxlFQgdXVI7CL0FD9R60gExHpffvljT+/tis70Nqfdc+M571OSGqqq/
+                        jCRCFHqD+elbVpCgk01LvdBWI9VVnkRgO2M6YQIDAQABAoIBADE81ZKqG8ZguKlb
+                        k3VJEhW0X4IZ3LY2vN1UgqVkcg/5FsltR7afq7EgPkOKVi6foOBOXOvrceJXfZGC
+                        JYb+s+7HjMtZ1KrutZ2fsGuC7RxgaAknWIoRAywLJcBKUp4H7BbFCCM4rvk9nWLY
+                        Yg+4EdeI+Xx/IeDkbZ+trTnxovWljDH++TBwpJC9BWYu3bPBbyoyg4uNndIsYKKS
+                        rQ52SGNGU9mqO8n/X7Hcuo10zVUwsaHYhFgE5DNAAoH/sToW51H7qGQ8JSkFi2E3
+                        rc6kY+h98ZAFEepaK1/NyCbKc6EB4oVPXwt+NeZcKxEvdjxoMxOpkTNLI+rQOI2N
+                        0CKBnkECgYEA/bRfwieydEwtcaE1RPCtB6UWwzLVF8uEOXZWG103c0qaqvfU/Gxe
+                        2rE9lN/E6UQ7wkixd+QdLvIqUvnz7hZiR98YjSy5MMukxn5I76yG1rhRKC7RfCDZ
+                        ULz86u7IpaNC2YoBbuzoM0rJuP/+Kfd1y28sizDBhVIQw9i3Is1ehJkCgYEA1/4A
+                        glhLrlA7FnQ1MO3ugRI8sO6Frmgww+YjHczZhv4CMvIoMLUEagdn3bD+2qez+Cav
+                        sJtVURE7IoqKGhMBtx1YQcW5zIltDXw8utwUjuAydtYAHBN9swJA+LHcOWkV0pGt
+                        RAHCJ/H0BDLiL3RtL5abpsZqnZG6L/Xo2EfuuQkCgYEAtR7HWjHC6dnUe5GuGOiF
+                        brbCOFqa3KDzZZ6AvIpg4tL49mN1zzuCwDfWkejqh+mpi/sfj0rwNqq14oUFSwz5
+                        3vt7aJXsI9TObtKLOWf+3124uqop7ab53fT9zq7n2bBjMjCe81T4NF4JAyTmi4lZ
+                        tAFLWJdXINnElDysCZF6D8kCgYEAmOzU7XSYeN2DSF2Uv4TmheokoFzwt1A7nqfV
+                        mybLqOE1K176h6nSa0O9DWBgwO1V5c92OwNvv4sEpGsUZmuonj6fm0nkR+XRGWgq
+                        E175C0O/VxYjU72VFOX2nF5Jfzhg5AqSc4EPN3r+eu6P6Gt1Vuk6YTVAjTl9arGg
+                        X2lmowkCgYEAybTsNwHD5/Q8UgVsnNVd/P9DFIa6JFhCSolv2cffZznsZixTlYEe
+                        VqeUrpavszCAPNq2eoy3rWq5NY8BaqOAJ1N2LFSpHzPJDnEq7ym6Wztgiqm63Sl/
+                        8grcm8nlpDDbsyve9qUsEknLk2nG65x7W38QSycGvfWuMQkf1ZXE4Wc=
+                        -----END RSA PRIVATE KEY-----
+                    poll_delay:
+                      seconds: 1
+              alpn_protocols:
+                - HTTP/3
+  clusters:
+  - name: my_cluster
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: round_robin
+    # protocol_selection: USE_DOWNSTREAM_PROTOCOL
+    http2_protocol_options: {}
+    dns_lookup_family: ALL
+    load_assignment:
+      cluster_name: my_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 33333
+
